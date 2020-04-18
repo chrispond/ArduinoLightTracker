@@ -13,9 +13,9 @@ const int SdCsPin = 4;
 
 // Global Properties
 File dataFile;
-int analogValue = 0;
-long oneMinute = 60000; // 60,000 milliseconds is 1 Minute
-long oneHour = oneMinute * 60;
+int oneMinute = 60000; // 60,000 milliseconds is 1 Minute
+int hours = 22; // Start Time
+int minutes = 30; // Start Time
 
 void setup() {
   Serial.begin(9600);
@@ -23,18 +23,32 @@ void setup() {
   SD.begin(SdCsPin);
 }
 
-void loop() {
-  unsigned long currentTime = millis();
-  analogValue = analogRead(photoResistor);
-  CaptureData(currentTime, analogValue);
+void loop() {  
+  CaptureData(UpdatedTimeStamp(), analogRead(photoResistor));
   delay(oneMinute);
 }
 
-void CaptureData(int currentTime, int lightLevel) {
-  int hours = floor(currentTime/oneHour);
-  int minutes = floor(currentTime/oneMinute) - (hours * oneHour);
-  char timeStamp[10];
+String UpdatedTimeStamp() {
+  if(minutes >= 59){
+    minutes = 0;
+  }else{
+    minutes = minutes + 1;
+  }
+
+  if(minutes == 0){
+    hours = hours + 1;
+
+    if(hours >= 24){
+      hours = 0;
+    }
+  }
+  
+  char timeStamp[100];
   sprintf(timeStamp, "%02d:%02d", hours, minutes);
+  return timeStamp;
+}
+
+void CaptureData(String timeStamp, int lightLevel) {
   dataFile = SD.open("SUNDATA.csv", FILE_WRITE);
 
   if(dataFile){
